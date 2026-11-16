@@ -15,6 +15,6 @@ Free study app for the California Class A CDL knowledge tests (General Knowledge
 - Works offline after the first visit and can be installed to your home screen
 - Accessibility: screen-reader support, keyboard navigation, text size, high contrast and readable-font options
 
-**Android app (test build):** [downloads/ca-cdl-study.apk](downloads/ca-cdl-study.apk) – version 13, debug-signed. It installs over version 12 and keeps your progress. If you have an older test build that will not update, export your progress (My stats → export), uninstall it, then install this one.
+**Android app (test build):** [downloads/ca-cdl-study.apk](downloads/ca-cdl-study.apk) – version 14, debug-signed. It installs over versions 12 and 13 and keeps your progress. If you have an older test build that will not update, export your progress (My stats → export), uninstall it, then install this one.
 
 Study aid only. Always check the current DMV handbook and official rules before your test. See [README-DEPLOY.md](README-DEPLOY.md) for hosting notes.

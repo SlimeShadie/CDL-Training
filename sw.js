@@ -1,5 +1,5 @@
 /* CA CDL Class A Study — service worker */
-const CACHE = 'ca-cdl-study-v14';
+const CACHE = 'ca-cdl-study-v15';
 const ASSETS = [
   './',
   './index.html',
@@ -15,7 +15,8 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      .then((cache) => cache.addAll(ASSETS))
+      // cache: 'reload' skips the browser's HTTP cache so a new version never stores an older copy of the app.
+      .then((cache) => cache.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
   );
 });
@@ -32,16 +33,31 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+  const isNav = event.request.mode === 'navigate';
+  const scope = self.registration.scope;
+  const atRoot = url.href.split('?')[0] === scope || url.href.split('?')[0] === scope + 'index.html';
+  if (isNav && atRoot) {
+    // The app page: network first (so updates arrive right away), cached copy when offline.
+    event.respondWith((async () => {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        const resp = await fetch(new Request(scope + 'index.html', { cache: 'no-cache', signal: ctrl.signal }));
+        clearTimeout(t);
+        if (resp && resp.ok) {
+          const cache = await caches.open(CACHE);
+          await cache.put('./index.html', resp.clone());
+          return resp;
+        }
+      } catch (err) { /* offline or slow: fall back to the cached app */ }
+      const page = await caches.match('./index.html');
+      return page || fetch(event.request);
+    })());
+    return;
+  }
   event.respondWith((async () => {
     const cached = await caches.match(event.request, { ignoreSearch: true });
     if (cached) return cached;
-    const isNav = event.request.mode === 'navigate';
-    const scope = self.registration.scope;
-    const atRoot = url.href.split('?')[0] === scope || url.href.split('?')[0] === scope + 'index.html';
-    if (isNav && atRoot) {
-      const page = await caches.match('./index.html');
-      if (page) return page;
-    }
     try {
       const resp = await fetch(event.request);
       if (resp && resp.ok) {
@@ -53,10 +69,7 @@ self.addEventListener('fetch', (event) => {
       if (isNav && resp.status === 404) return Response.redirect(scope, 302);
       return resp;
     } catch (err) {
-      if (isNav) {
-        if (atRoot) { const page = await caches.match('./index.html'); if (page) return page; }
-        return Response.redirect(scope, 302);
-      }
+      if (isNav) return Response.redirect(scope, 302);
       throw err;
     }
   })());
