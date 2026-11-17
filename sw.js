@@ -1,5 +1,5 @@
 /* CA CDL Class A Study — service worker */
-const CACHE = 'ca-cdl-study-v18';
+const CACHE = 'ca-cdl-study-v19';
 const ASSETS = [
   './',
   './index.html',
@@ -33,6 +33,8 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+  // version.json is always read from the network so the app can tell when a newer version is out.
+  if (url.pathname.endsWith('/version.json')) return;
   const isNav = event.request.mode === 'navigate';
   const scope = self.registration.scope;
   const atRoot = url.href.split('?')[0] === scope || url.href.split('?')[0] === scope + 'index.html';
