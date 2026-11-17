@@ -1,5 +1,5 @@
 /* CA CDL Class A Study — service worker */
-const CACHE = 'ca-cdl-study-v20';
+const CACHE = 'ca-cdl-study-v21';
 const ASSETS = [
   './',
   './index.html',
